@@ -77,8 +77,8 @@ def procesar_pdf(uploaded_file):
     return df_final
 
 def main():
-    st.title("Procesador PISE")
-    uploaded_file = st.file_uploader("Subir PDF de inspección", type="pdf")
+    st.title("Extraer datos de informes estáticos PISE")
+    uploaded_file = st.file_uploader("Subir el informe de una unidad en PDF Preliminar", type="pdf")
     if uploaded_file is not None:
         df_final = procesar_pdf(uploaded_file)
         st.write("Vista previa de los datos extraídos:")
@@ -90,9 +90,9 @@ def main():
         buffer.seek(0)
 
         st.download_button(
-            label="Descargar Excel",
+            label="Descargar datos en formato Excel",
             data=buffer,
-            file_name="inspeccion_pise_tabla_control_refinada.xlsx",
+            file_name="PISE.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
