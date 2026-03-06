@@ -8,7 +8,7 @@ import re, os, tempfile, io
 page_bg_img = f"""
 <style>
 [data-testid="stAppViewContainer"] {{
-    background-image: url("https://raw.githubusercontent.com/Ariel-Alte/extraer-datos-de-PISE/main/0006.jpg");
+    background-image: url("https://raw.githubusercontent.com/Ariel-Alte/extraer-datos-de-PISE/main/CKD.jpg");
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
@@ -120,7 +120,7 @@ def main():
     st.markdown(
         """
         <h1 style='color: white; text-align: center; background-color: #1E90FF;
-                   padding: 12px; border-radius: 14px; border: 5px solid black;'>
+                   padding: 12px; border-radius: 8px; border: 2px solid black;'>
             Extraer datos de informes estáticos PISE
         </h1>
         """,
@@ -139,7 +139,7 @@ def main():
         # Agregar nombre del archivo
         df_final["Nombre del archivo"] = uploaded_file.name
 
-        # 🔹 Reordenar columnas
+        # Reordenar columnas
         orden_columnas = [
             "Código PISE/Informe",
             "Informe N°",
@@ -157,10 +157,9 @@ def main():
         ]
         df_final = df_final.reindex(columns=orden_columnas)
 
-        # 🔹 Vista previa completa
-        st.write("Vista previa de los datos extraídos:")
+        # Vista previa completa
+        st.write("Vista previa de todos los datos extraídos:")
         st.dataframe(df_final)
-        st.write(f"Total de filas extraídas: {len(df_final)}")
 
         # 🔍 Buscador dinámico
         busqueda = st.text_input("Buscar ítem técnico (ej: 2.13, 4.12, etc.)")
@@ -186,22 +185,5 @@ def main():
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
-        # Exportar Excel completo
-        nombre_base = os.path.splitext(uploaded_file.name)[0]
-        nombre_excel = f"{nombre_base}_procesado.xlsx"
-
-        buffer = io.BytesIO()
-        df_final.to_excel(buffer, index=False, engine="openpyxl")
-        buffer.seek(0)
-
-        st.download_button(
-            label="Descargar Excel completo",
-            data=buffer,
-            file_name=nombre_excel,
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-
 if __name__ == "__main__":
     main()
-
-
