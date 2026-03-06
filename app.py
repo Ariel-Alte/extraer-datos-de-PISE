@@ -119,14 +119,23 @@ def procesar_pdf(uploaded_file):
 def main():
     st.markdown(
         """
-        <h1 style='color: white; text-align: center; background-color: #1E90FF;
-                   padding: 12px; border-radius: 14px; border: 5px solid black;'>
+        <h1 style='color: white; text-align: center; background-color: #333333;
+                   padding: 12px; border-radius: 8px; border: 2px solid black;'>
             Extraer datos de informes estáticos PISE
         </h1>
         """,
         unsafe_allow_html=True
     )
-
+    st.markdown(
+        """
+        <h3 style='color: yellow; background-color: #333333;
+                   padding: 12px; border-radius: 8px; border: 2px solid blue;'>
+            📂 Subir solo informe del tipo preliminar
+        </h3>
+        """,
+        unsafe_allow_html=True
+    )
+    
     uploaded_file = st.file_uploader("Subir el informe de una unidad en PDF Preliminar", type="pdf")
     if uploaded_file is not None:
         df_final = procesar_pdf(uploaded_file)
@@ -162,11 +171,13 @@ def main():
         st.dataframe(df_final)
         st.write(f"Total de filas extraídas: {len(df_final)}")
 
-        # 🔍 Buscador dinámico
-        busqueda = st.text_input("Buscar ítem técnico (ej: 2.13, 4.12, etc.)")
+        # 🔍 Buscador múltiple por ítems separados por coma
+        busqueda = st.text_input("Buscar ítems técnicos (separados por coma, ej: 3.12.1, 3.12.2)")
 
         if busqueda:
-            df_filtrado = df_final[df_final["Ítem técnico"].astype(str).str.contains(busqueda, case=False, na=False)]
+            items = [x.strip() for x in busqueda.split(",") if x.strip()]
+            df_filtrado = df_final[df_final["Ítem técnico"].astype(str).isin(items)]
+
             st.write("Resultados filtrados:")
             st.dataframe(df_filtrado)
             st.write(f"Total de filas encontradas: {len(df_filtrado)}")
