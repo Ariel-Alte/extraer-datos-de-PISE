@@ -1,9 +1,10 @@
 import streamlit as st
 import camelot
+import pdfplumber
 import pandas as pd
 import re, os, tempfile, io
 
-# 🔹 Personalización del fondo con CSS (ejemplo con tu imagen en GitHub)
+# 🔹 Fondo personalizado
 page_bg_img = f"""
 <style>
 [data-testid="stAppViewContainer"] {{
@@ -16,6 +17,27 @@ page_bg_img = f"""
 """
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
+# 🔹 Función para extraer encabezado
+def extraer_encabezado(uploaded_file):
+    encabezado_info = {}
+    with pdfplumber.open(uploaded_file) as pdf:
+        primera_pagina = pdf.pages[0]
+        texto = primera_pagina.extract_text()
+
+        # Buscar patrones comunes
+        match_fecha = re.search(r"Fecha:\s*(\d{2}/\d{2}/\d{4})", texto)
+        match_informe = re.search(r"Informe N°:\s*(\d+)", texto)
+        match_inspeccion = re.search(r"Inspección N°:\s*(\d+)", texto)
+        match_linea = re.search(r"LÍNEA\s+([A-ZÁÉÍÓÚÑ ]+)", texto)
+
+        encabezado_info["Fecha"] = match_fecha.group(1) if match_fecha else ""
+        encabezado_info["Informe N°"] = match_informe.group(1) if match_informe else ""
+        encabezado_info["Inspección N°"] = match_inspeccion.group(1) if match_inspeccion else ""
+        encabezado_info["Línea"] = match_linea.group(1).strip() if match_linea else ""
+
+    return encabezado_info
+
+# 🔹 Función para procesar tablas
 def procesar_pdf(uploaded_file):
     tmpdir = tempfile.mkdtemp()
     path = os.path.join(tmpdir, uploaded_file.name)
@@ -89,6 +111,7 @@ def procesar_pdf(uploaded_file):
     df_final = pd.DataFrame(registros)
     return df_final
 
+# 🔹 Interfaz principal
 def main():
     st.markdown(
         """
@@ -103,7 +126,7 @@ def main():
     st.markdown(
         """
         <h3 style='color: yellow; background-color: #333333; padding: 8px;
-                   border-left: 2px solid orange;'>
+                   border: 1px solid orange;'>
             📂 Subir solo informe del tipo preliminar
         </h3>
         """,
@@ -114,7 +137,12 @@ def main():
     if uploaded_file is not None:
         df_final = procesar_pdf(uploaded_file)
 
-        # Agregar nombre del archivo como columna
+        # Extraer encabezado
+        encabezado = extraer_encabezado(uploaded_file)
+        for clave, valor in encabezado.items():
+            df_final[clave] = valor
+
+        # Agregar nombre del archivo
         df_final["Nombre del archivo"] = uploaded_file.name
 
         st.write("Vista previa de los datos extraídos:")
@@ -128,10 +156,9 @@ def main():
         st.download_button(
             label="Descargar Excel",
             data=buffer,
-            file_name="inspeccion_pise_tabla_control_refinada.xlsx",
+            file_name="PISE.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
 if __name__ == "__main__":
     main()
-
