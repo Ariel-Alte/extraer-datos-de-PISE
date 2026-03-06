@@ -1,0 +1,96 @@
+import streamlit as st
+import camelot
+import pandas as pd
+import re, os, tempfile
+
+def procesar_pdf(uploaded_file):
+    tmpdir = tempfile.mkdtemp()
+    path = os.path.join(tmpdir, uploaded_file.name)
+    with open(path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+
+    tablas = camelot.read_pdf(path, pages='all', flavor='lattice', strip_text='\n')
+    if len(tablas) == 0:
+        tablas = camelot.read_pdf(path, pages='all', flavor='stream', strip_text='\n')
+
+    registros = []
+    for tabla in tablas:
+        df = tabla.df.copy()
+        if df.shape[0] > 3:
+            encabezado = df.iloc[:3].fillna('').agg(' '.join).str.replace(r'\s+', ' ', regex=True).str.strip()
+            df.columns = encabezado
+            df = df.iloc[3:].reset_index(drop=True)
+
+        texto_tabla = tabla.df.to_string().lower()
+        match_bogie = re.search(r"bogie\s*(\d)", texto_tabla)
+        bogie_detectado = match_bogie.group(1) if match_bogie else "¿?"
+        columnas = list(df.columns)
+
+        for idx, fila in df.iterrows():
+            if len(fila) < 2:
+                continue
+            item = str(fila.iloc[0]).strip()
+            descripcion = str(fila.iloc[1]).strip()
+            if not re.match(r"^\d+(\.\d+)*$", item):
+                continue
+
+            match_valor_esperado = re.search(r"\((.*?)\)", descripcion)
+            valor_esperado = match_valor_esperado.group(1) if match_valor_esperado else ""
+
+            if len(fila) < 3:
+                continue
+            for i in range(2, len(columnas)):
+                valor_crudo = str(fila.iloc[i]).strip()
+                if not valor_crudo:
+                    continue
+
+                nombre_col = str(columnas[i])
+                match_rueda = re.search(r"RUEDA\s*(\d+)", nombre_col, re.IGNORECASE)
+                match_lado = re.search(r"\((D|I)\)|LADO\s*(PAR|IMPAR)", nombre_col, re.IGNORECASE)
+                lado_col = match_lado.group(1) if match_lado else (match_lado.group(2) if match_lado else "")
+                rueda_col = match_rueda.group(1) if match_rueda else ""
+
+                ubicacion_match = re.search(r"\b(INTERNO|EXTERNO|LADO\s*PAR|LADO\s*IMPAR)\b", valor_crudo, re.IGNORECASE)
+                ubicacion = ubicacion_match.group(1).upper() if ubicacion_match else ""
+                valor_limpio = re.sub(r"\b(INTERNO|EXTERNO|LADO\s*PAR|LADO\s*IMPAR)\b", '', valor_crudo, flags=re.IGNORECASE).strip()
+
+                valores_separados = re.split(r"\s{2,}|\s+", valor_limpio)
+                for j, subvalor in enumerate(valores_separados):
+                    subvalor = subvalor.strip()
+                    if not subvalor:
+                        continue
+                    rueda_auto = rueda_col if rueda_col else str(j + 1)
+                    lado_auto = lado_col if lado_col else ("D" if j % 2 == 0 else "I")
+
+                    registros.append({
+                        "Ítem técnico": item,
+                        "Descripción": descripcion,
+                        "Bogie": bogie_detectado,
+                        "Rueda": rueda_auto,
+                        "Lado": lado_auto,
+                        "Ubicación": ubicacion,
+                        "Valor esperado": valor_esperado,
+                        "Valor medido": subvalor
+                    })
+
+    df_final = pd.DataFrame(registros)
+    return df_final
+
+def main():
+    st.title("Procesador PISE")
+    uploaded_file = st.file_uploader("Subir PDF de inspección", type="pdf")
+    if uploaded_file is not None:
+        df_final = procesar_pdf(uploaded_file)
+        st.write("Vista previa de los datos extraídos:")
+        st.dataframe(df_final.head())
+
+        excel_bytes = df_final.to_excel(index=False, engine="openpyxl")
+        st.download_button(
+            label="Descargar Excel",
+            data=excel_bytes,
+            file_name="inspeccion_pise_tabla_control_refinada.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+if __name__ == "__main__":
+    main()
