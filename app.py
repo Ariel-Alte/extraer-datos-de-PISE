@@ -93,20 +93,18 @@ def procesar_pdf(uploaded_file):
                 ubicacion = ubicacion_match.group(1).upper() if ubicacion_match else ""
                 valor_limpio = re.sub(r"\b(INTERNO|EXTERNO|LADO\s*PAR|LADO\s*IMPAR)\b", '', valor_crudo, flags=re.IGNORECASE).strip()
 
-                valores_separados = re.split(r"\s{2,}|\s+", valor_limpio)
-                for j, subvalor in enumerate(valores_separados):
+                # 🔹 Generar una fila por cada valor medido
+                valores_separados = re.split(r"\s{2,}|\t+", valor_limpio)
+                for subvalor in valores_separados:
                     subvalor = subvalor.strip()
                     if not subvalor:
                         continue
-                    rueda_auto = rueda_col if rueda_col else str(j + 1)
-                    lado_auto = lado_col if lado_col else ("D" if j % 2 == 0 else "I")
-
                     registros.append({
                         "Ítem técnico": item,
                         "Descripción": descripcion,
                         "Bogie": bogie_detectado,
-                        "Rueda": rueda_auto,
-                        "Lado": lado_auto,
+                        "Rueda": rueda_col,
+                        "Lado": lado_col,
                         "Ubicación": ubicacion,
                         "Valor esperado": valor_esperado,
                         "Valor medido": subvalor
@@ -119,23 +117,14 @@ def procesar_pdf(uploaded_file):
 def main():
     st.markdown(
         """
-        <h1 style='color: white; text-align: center; background-color: #333333;
-                   padding: 12px; border-radius: 8px; border: 2px solid black;'>
+        <h1 style='color: white; text-align: center; background-color: #1E90FF;
+                   padding: 12px; border-radius: 14px; border: 5px solid black;'>
             Extraer datos de informes estáticos PISE
         </h1>
         """,
         unsafe_allow_html=True
     )
-    st.markdown(
-        """
-        <h3 style='color: yellow; background-color: #333333;
-                   padding: 12px; border-radius: 8px; border: 2px solid blue;'>
-            📂 Subir solo informe del tipo preliminar
-        </h3>
-        """,
-        unsafe_allow_html=True
-    )
-    
+
     uploaded_file = st.file_uploader("Subir el informe de una unidad en PDF Preliminar", type="pdf")
     if uploaded_file is not None:
         df_final = procesar_pdf(uploaded_file)
@@ -214,3 +203,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
