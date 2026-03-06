@@ -25,8 +25,8 @@ def extraer_encabezado(uploaded_file):
         texto = primera_pagina.extract_text()
 
         match_informe = re.search(r"Informe\s*N[°º]?\s*:?\s*(\d+)", texto, re.IGNORECASE)
-        match_inspeccion = re.search(r"Inspección\s*N[°º]?\s*:?\s*(\d+)", texto, re.IGNORECASE)
-        match_codigo = re.search(r"(PISE-SGBV-\d{3})", texto, re.IGNORECASE)
+        match_inspeccion = re.search(r"Inspección N°:\s*(\d+)", texto)
+        match_codigo = re.search(r"(PISE-SGBV-\d{3})", texto)
 
         informe_num = match_informe.group(1) if match_informe else ""
         inspeccion_num = match_inspeccion.group(1) if match_inspeccion else ""
@@ -93,18 +93,20 @@ def procesar_pdf(uploaded_file):
                 ubicacion = ubicacion_match.group(1).upper() if ubicacion_match else ""
                 valor_limpio = re.sub(r"\b(INTERNO|EXTERNO|LADO\s*PAR|LADO\s*IMPAR)\b", '', valor_crudo, flags=re.IGNORECASE).strip()
 
-                # 🔹 Generar una fila por cada valor medido
-                valores_separados = re.split(r"\s{2,}|\t+", valor_limpio)
-                for subvalor in valores_separados:
+                valores_separados = re.split(r"\s{2,}|\s+", valor_limpio)
+                for j, subvalor in enumerate(valores_separados):
                     subvalor = subvalor.strip()
                     if not subvalor:
                         continue
+                    rueda_auto = rueda_col if rueda_col else str(j + 1)
+                    lado_auto = lado_col if lado_col else ("D" if j % 2 == 0 else "I")
+
                     registros.append({
                         "Ítem técnico": item,
                         "Descripción": descripcion,
                         "Bogie": bogie_detectado,
-                        "Rueda": rueda_col,
-                        "Lado": lado_col,
+                        "Rueda": rueda_auto,
+                        "Lado": lado_auto,
                         "Ubicación": ubicacion,
                         "Valor esperado": valor_esperado,
                         "Valor medido": subvalor
@@ -121,6 +123,15 @@ def main():
                    padding: 12px; border-radius: 14px; border: 5px solid black;'>
             Extraer datos de informes estáticos PISE
         </h1>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        """
+        <h3 style='color: white; background-color: #333333; padding: 12px; border-radius: 14px; border: 5px solid black;'>
+            📂 Subir solo informe del tipo preliminar
+        </h3>
         """,
         unsafe_allow_html=True
     )
@@ -155,38 +166,12 @@ def main():
         ]
         df_final = df_final.reindex(columns=orden_columnas)
 
-        # 🔹 Vista previa completa
+        # 🔹 Bloque de previsualización
         st.write("Vista previa de los datos extraídos:")
         st.dataframe(df_final)
         st.write(f"Total de filas extraídas: {len(df_final)}")
 
-        # 🔍 Buscador múltiple por ítems separados por coma
-        busqueda = st.text_input("Buscar ítems técnicos (separados por coma, ej: 3.12.1, 3.12.2)")
-
-        if busqueda:
-            items = [x.strip() for x in busqueda.split(",") if x.strip()]
-            df_filtrado = df_final[df_final["Ítem técnico"].astype(str).isin(items)]
-
-            st.write("Resultados filtrados:")
-            st.dataframe(df_filtrado)
-            st.write(f"Total de filas encontradas: {len(df_filtrado)}")
-
-            # Exportar Excel filtrado
-            nombre_base = os.path.splitext(uploaded_file.name)[0]
-            nombre_excel = f"{nombre_base}_filtrado.xlsx"
-
-            buffer = io.BytesIO()
-            df_filtrado.to_excel(buffer, index=False, engine="openpyxl")
-            buffer.seek(0)
-
-            st.download_button(
-                label="Descargar Excel filtrado",
-                data=buffer,
-                file_name=nombre_excel,
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-
-        # Exportar Excel completo
+        # Exportar a Excel en memoria
         nombre_base = os.path.splitext(uploaded_file.name)[0]
         nombre_excel = f"{nombre_base}_procesado.xlsx"
 
@@ -195,7 +180,7 @@ def main():
         buffer.seek(0)
 
         st.download_button(
-            label="Descargar Excel completo",
+            label="Descargar Excel",
             data=buffer,
             file_name=nombre_excel,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -203,4 +188,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
