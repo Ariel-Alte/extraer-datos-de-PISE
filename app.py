@@ -7,7 +7,7 @@ import re, os, tempfile, io
 page_bg_img = f"""
 <style>
 [data-testid="stAppViewContainer"] {{
-    background-image: url("https://github.com/Ariel-Alte/extraer-datos-de-PISE/blob/main/CKD.jpg");
+    background-image: url("https://raw.githubusercontent.com/Ariel-Alte/extraer-datos-de-PISE/main/CKD.jpg");
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
