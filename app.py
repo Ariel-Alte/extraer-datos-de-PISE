@@ -1,7 +1,7 @@
 import streamlit as st
 import camelot
 import pandas as pd
-import re, os, tempfile
+import re, os, tempfile, io
 
 def procesar_pdf(uploaded_file):
     tmpdir = tempfile.mkdtemp()
@@ -84,10 +84,14 @@ def main():
         st.write("Vista previa de los datos extraídos:")
         st.dataframe(df_final.head())
 
-        excel_bytes = df_final.to_excel(index=False, engine="openpyxl")
+        # Exportar a Excel en memoria
+        buffer = io.BytesIO()
+        df_final.to_excel(buffer, index=False, engine="openpyxl")
+        buffer.seek(0)
+
         st.download_button(
             label="Descargar Excel",
-            data=excel_bytes,
+            data=buffer,
             file_name="inspeccion_pise_tabla_control_refinada.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
