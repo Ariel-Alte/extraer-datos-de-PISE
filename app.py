@@ -9,7 +9,7 @@ page_bg_img = f"""
 [data-testid="stAppViewContainer"] {{
     background-image: url("https://raw.githubusercontent.com/Ariel-Alte/extraer-datos-de-PISE/main/0006.jpg");
     background-size: contain;
-    background-repeat: space;
+    background-repeat: round;
     background-attachment: fixed;
 }}
 </style>
