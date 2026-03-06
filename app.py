@@ -8,7 +8,7 @@ import re, os, tempfile, io
 page_bg_img = f"""
 <style>
 [data-testid="stAppViewContainer"] {{
-    background-image: url("https://raw.githubusercontent.com/Ariel-Alte/extraer-datos-de-PISE/main/0006.jpg");
+    background-image: url("https://raw.githubusercontent.com/Ariel-Alte/extraer-datos-de-PISE/main/CKD.jpg");
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
@@ -25,15 +25,21 @@ def extraer_encabezado(uploaded_file):
         texto = primera_pagina.extract_text()
 
         # Buscar patrones comunes
-        match_fecha = re.search(r"Fecha:\s*(\d{2}/\d{2}/\d{4})", texto)
         match_informe = re.search(r"Informe N°:\s*(\d+)", texto)
         match_inspeccion = re.search(r"Inspección N°:\s*(\d+)", texto)
-        match_linea = re.search(r"LÍNEA\s+([A-ZÁÉÍÓÚÑ ]+)", texto)
+        match_codigo = re.search(r"(PISE-SGBV-\d{3})", texto)
 
-        encabezado_info["Fecha"] = match_fecha.group(1) if match_fecha else ""
-        encabezado_info["Informe N°"] = match_informe.group(1) if match_informe else ""
-        encabezado_info["Inspección N°"] = match_inspeccion.group(1) if match_inspeccion else ""
-        encabezado_info["Línea"] = match_linea.group(1).strip() if match_linea else ""
+        informe_num = match_informe.group(1) if match_informe else ""
+        inspeccion_num = match_inspeccion.group(1) if match_inspeccion else ""
+        codigo_pise = match_codigo.group(1) if match_codigo else ""
+
+        # Concatenar Código PISE + "/" + Informe N°
+        combinado = f"{codigo_pise}/{informe_num}" if codigo_pise and informe_num else ""
+
+        encabezado_info["Informe N°"] = informe_num
+        encabezado_info["Inspección N°"] = inspeccion_num
+        encabezado_info["Código PISE"] = codigo_pise
+        encabezado_info["Código PISE/Informe"] = combinado
 
     return encabezado_info
 
@@ -115,7 +121,7 @@ def procesar_pdf(uploaded_file):
 def main():
     st.markdown(
         """
-        <h1 style='color: white; text-align: center; background-color: #333333;
+        <h1 style='color: white; text-align: center; background-color: #1E90FF;
                    padding: 12px; border-radius: 8px; border: 2px solid black;'>
             Extraer datos de informes estáticos PISE
         </h1>
@@ -126,7 +132,7 @@ def main():
     st.markdown(
         """
         <h3 style='color: yellow; background-color: #333333; padding: 8px;
-                   ; border-radius: 8px; border: 2px solid orange;'>
+                   border-left: 5px solid orange;'>
             📂 Subir solo informe del tipo preliminar
         </h3>
         """,
@@ -145,10 +151,10 @@ def main():
         # Agregar nombre del archivo
         df_final["Nombre del archivo"] = uploaded_file.name
 
-        st.write("Vista previa de los datos extraídos:")
-        st.dataframe(df_final.head())
+        # Nombre dinámico del Excel
+        nombre_base = os.path.splitext(uploaded_file.name)[0]
+        nombre_excel = f"{nombre_base}_procesado.xlsx"
 
-        # Exportar a Excel en memoria
         buffer = io.BytesIO()
         df_final.to_excel(buffer, index=False, engine="openpyxl")
         buffer.seek(0)
@@ -156,7 +162,7 @@ def main():
         st.download_button(
             label="Descargar Excel",
             data=buffer,
-            file_name="PISE.xlsx",
+            file_name=nombre_excel,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
