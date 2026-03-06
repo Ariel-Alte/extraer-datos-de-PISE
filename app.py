@@ -24,7 +24,6 @@ def extraer_encabezado(uploaded_file):
         primera_pagina = pdf.pages[0]
         texto = primera_pagina.extract_text()
 
-        # Buscar patrones comunes
         match_informe = re.search(r"Informe N°:\s*(\d+)", texto)
         match_inspeccion = re.search(r"Inspección N°:\s*(\d+)", texto)
         match_codigo = re.search(r"(PISE-SGBV-\d{3})", texto)
@@ -33,7 +32,6 @@ def extraer_encabezado(uploaded_file):
         inspeccion_num = match_inspeccion.group(1) if match_inspeccion else ""
         codigo_pise = match_codigo.group(1) if match_codigo else ""
 
-        # Concatenar Código PISE + "/" + Informe N°
         combinado = f"{codigo_pise}/{informe_num}" if codigo_pise and informe_num else ""
 
         encabezado_info["Informe N°"] = informe_num
@@ -131,8 +129,7 @@ def main():
 
     st.markdown(
         """
-        <h3 style='color: yellow; background-color: #333333; padding: 8px;
-                   border-left: 5px solid orange;'>
+        <h3 style='color: yellow; background-color: #333333; padding: 12px; border-radius: 8px; border: 2px solid black;''>
             📂 Subir solo informe del tipo preliminar
         </h3>
         """,
@@ -151,7 +148,12 @@ def main():
         # Agregar nombre del archivo
         df_final["Nombre del archivo"] = uploaded_file.name
 
-        # Nombre dinámico del Excel
+        # 🔹 Bloque de previsualización SIEMPRE visible
+        st.write("Vista previa de los datos extraídos:")
+        st.dataframe(df_final)   # muestra todo el DataFrame
+        st.write(f"Total de filas extraídas: {len(df_final)}")
+
+        # Exportar a Excel en memoria
         nombre_base = os.path.splitext(uploaded_file.name)[0]
         nombre_excel = f"{nombre_base}_procesado.xlsx"
 
