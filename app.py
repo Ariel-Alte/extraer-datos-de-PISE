@@ -3,13 +3,13 @@ import camelot
 import pandas as pd
 import re, os, tempfile, io
 
-# 🔹 Personalización del fondo con CSS
+# 🔹 Personalización del fondo con CSS (ejemplo con tu imagen en GitHub)
 page_bg_img = f"""
 <style>
 [data-testid="stAppViewContainer"] {{
     background-image: url("https://raw.githubusercontent.com/Ariel-Alte/extraer-datos-de-PISE/main/0006.jpg");
-    background-size: contain;
-    background-repeat: round;
+    background-size: cover;
+    background-repeat: no-repeat;
     background-attachment: fixed;
 }}
 </style>
@@ -90,41 +90,33 @@ def procesar_pdf(uploaded_file):
     return df_final
 
 def main():
-    #st.title("Extraer datos de informes estáticos PISE")
-    
-    #st.markdown("### 📂 Subir solo informe del tipo preliminar")
+    st.markdown(
+        """
+        <h1 style='color: white; text-align: center; background-color: #333333;
+                   padding: 12px; border-radius: 8px; border: 2px solid black;'>
+            Extraer datos de informes estáticos PISE
+        </h1>
+        """,
+        unsafe_allow_html=True
+    )
 
     st.markdown(
-    """
-    <h1 style='color: white; 
-               text-align: center; 
-               background-color: #333333; 
-               padding: 12px; 
-               border-radius: 8px; 
-               border: 2px solid black;'>
-        Extraer datos de informes estáticos PISE
-    </h1>
-    """,
-    unsafe_allow_html=True
-)
+        """
+        <h3 style='color: yellow; background-color: #333333; padding: 8px;
+                   border-left: 2px solid orange;'>
+            📂 Subir solo informe del tipo preliminar
+        </h3>
+        """,
+        unsafe_allow_html=True
+    )
 
-# Subtítulo con color y borde
-    st.markdown(
-    """
-    <h3 style='color: yellow; 
-               background-color: #333333; 
-               padding: 8px; 
-               border-left: 5px solid orange;'>
-        📂 Subir solo informe del tipo preliminar
-    </h3>
-    """,
-    unsafe_allow_html=True
-)
-
-    
     uploaded_file = st.file_uploader("Subir el informe de una unidad en PDF Preliminar", type="pdf")
     if uploaded_file is not None:
         df_final = procesar_pdf(uploaded_file)
+
+        # Agregar nombre del archivo como columna
+        df_final["Nombre del archivo"] = uploaded_file.name
+
         st.write("Vista previa de los datos extraídos:")
         st.dataframe(df_final.head())
 
@@ -134,11 +126,12 @@ def main():
         buffer.seek(0)
 
         st.download_button(
-            label="Descargar datos en formato Excel",
+            label="Descargar Excel",
             data=buffer,
-            file_name="PISE.xlsx",
+            file_name="inspeccion_pise_tabla_control_refinada.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
 if __name__ == "__main__":
     main()
+
