@@ -3,3 +3,4 @@ camelot-py
 pandas
 openpyxl
 ghostscript
+pdfplumber
