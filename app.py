@@ -25,8 +25,8 @@ def extraer_encabezado(uploaded_file):
         texto = primera_pagina.extract_text()
 
         match_informe = re.search(r"Informe\s*N[°º]?\s*:?\s*(\d+)", texto, re.IGNORECASE)
-        match_inspeccion = re.search(r"Inspección\s*N[°º]?\s*:?\s*(\d+)", texto, re.IGNORECASE)
-        match_codigo = re.search(r"(PISE-SGBV-\d{3})", texto, re.IGNORECASE)
+        match_inspeccion = re.search(r"Inspección N°:\s*(\d+)", texto)
+        match_codigo = re.search(r"(PISE-SGBV-\d{3})", texto)
 
         informe_num = match_informe.group(1) if match_informe else ""
         inspeccion_num = match_inspeccion.group(1) if match_inspeccion else ""
