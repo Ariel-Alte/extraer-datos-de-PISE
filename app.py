@@ -126,7 +126,7 @@ def main():
     st.markdown(
         """
         <h3 style='color: yellow; background-color: #333333; padding: 8px;
-                   border: 1px solid orange;'>
+                   ; border-radius: 8px; border: 2px solid orange;'>
             📂 Subir solo informe del tipo preliminar
         </h3>
         """,
