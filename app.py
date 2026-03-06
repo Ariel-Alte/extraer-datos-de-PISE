@@ -24,9 +24,9 @@ def extraer_encabezado(uploaded_file):
         primera_pagina = pdf.pages[0]
         texto = primera_pagina.extract_text()
 
-        match_informe = re.search(r"Informe\s*N[°º]?\s*:?\s*(\d+)", texto, re.IGNORECASE) #re.search(r"Informe\s*N[°º]\s*:?(\d+)", texto, re.IGNORECASE)
-        match_inspeccion = re.search(r"Inspección N°:\s*(\d+)", texto)
-        match_codigo = re.search(r"(PISE-SGBV-\d{3})", texto)
+        match_informe = re.search(r"Informe\s*N[°º]?\s*:?\s*(\d+)", texto, re.IGNORECASE)
+        match_inspeccion = re.search(r"Inspección\s*N[°º]?\s*:?\s*(\d+)", texto, re.IGNORECASE)
+        match_codigo = re.search(r"(PISE-SGBV-\d{3})", texto, re.IGNORECASE)
 
         informe_num = match_informe.group(1) if match_informe else ""
         inspeccion_num = match_inspeccion.group(1) if match_inspeccion else ""
@@ -120,7 +120,7 @@ def main():
     st.markdown(
         """
         <h1 style='color: white; text-align: center; background-color: #1E90FF;
-                   padding: 12px; border-radius: 8px; border: 2px solid black;'>
+                   padding: 12px; border-radius: 14px; border: 5px solid black;'>
             Extraer datos de informes estáticos PISE
         </h1>
         """,
@@ -129,7 +129,7 @@ def main():
 
     st.markdown(
         """
-        <h3 style='color: yellow; background-color: #333333; padding: 12px; border-radius: 8px; border: 2px solid black;''>
+        <h3 style='color: white; background-color: #333333; padding: 12px; border-radius: 14px; border: 5px solid black;'>
             📂 Subir solo informe del tipo preliminar
         </h3>
         """,
@@ -148,9 +148,27 @@ def main():
         # Agregar nombre del archivo
         df_final["Nombre del archivo"] = uploaded_file.name
 
-        # 🔹 Bloque de previsualización SIEMPRE visible
+        # 🔹 Reordenar columnas
+        orden_columnas = [
+            "Código PISE/Informe",
+            "Informe N°",
+            "Inspección N°",
+            "Código PISE",
+            "Nombre del archivo",
+            "Ítem técnico",
+            "Descripción",
+            "Bogie",
+            "Rueda",
+            "Lado",
+            "Ubicación",
+            "Valor esperado",
+            "Valor medido"
+        ]
+        df_final = df_final.reindex(columns=orden_columnas)
+
+        # 🔹 Bloque de previsualización
         st.write("Vista previa de los datos extraídos:")
-        st.dataframe(df_final)   # muestra todo el DataFrame
+        st.dataframe(df_final)
         st.write(f"Total de filas extraídas: {len(df_final)}")
 
         # Exportar a Excel en memoria
@@ -170,3 +188,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
