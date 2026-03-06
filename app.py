@@ -109,7 +109,7 @@ def main():
 )
 
 # Subtítulo con color y borde
-st.markdown(
+    st.markdown(
     """
     <h3 style='color: yellow; 
                background-color: #333333; 
