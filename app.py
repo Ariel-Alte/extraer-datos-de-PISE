@@ -25,8 +25,8 @@ def extraer_encabezado(uploaded_file):
         texto = primera_pagina.extract_text()
 
         match_informe = re.search(r"Informe\s*N[°º]?\s*:?\s*(\d+)", texto, re.IGNORECASE)
-        match_inspeccion = re.search(r"Inspección N°:\s*(\d+)", texto)
-        match_codigo = re.search(r"(PISE-SGBV-\d{3})", texto)
+        match_inspeccion = re.search(r"Inspección\s*N[°º]?\s*:?\s*(\d+)", texto, re.IGNORECASE)
+        match_codigo = re.search(r"(PISE-SGBV-\d{3})", texto, re.IGNORECASE)
 
         informe_num = match_informe.group(1) if match_informe else ""
         inspeccion_num = match_inspeccion.group(1) if match_inspeccion else ""
@@ -127,15 +127,6 @@ def main():
         unsafe_allow_html=True
     )
 
-    st.markdown(
-        """
-        <h3 style='color: white; background-color: #333333; padding: 12px; border-radius: 14px; border: 5px solid black;'>
-            📂 Subir solo informe del tipo preliminar
-        </h3>
-        """,
-        unsafe_allow_html=True
-    )
-
     uploaded_file = st.file_uploader("Subir el informe de una unidad en PDF Preliminar", type="pdf")
     if uploaded_file is not None:
         df_final = procesar_pdf(uploaded_file)
@@ -166,12 +157,36 @@ def main():
         ]
         df_final = df_final.reindex(columns=orden_columnas)
 
-        # 🔹 Bloque de previsualización
+        # 🔹 Vista previa completa
         st.write("Vista previa de los datos extraídos:")
         st.dataframe(df_final)
         st.write(f"Total de filas extraídas: {len(df_final)}")
 
-        # Exportar a Excel en memoria
+        # 🔍 Buscador dinámico
+        busqueda = st.text_input("Buscar ítem técnico (ej: 2.13, 4.12, etc.)")
+
+        if busqueda:
+            df_filtrado = df_final[df_final["Ítem técnico"].astype(str).str.contains(busqueda, case=False, na=False)]
+            st.write("Resultados filtrados:")
+            st.dataframe(df_filtrado)
+            st.write(f"Total de filas encontradas: {len(df_filtrado)}")
+
+            # Exportar Excel filtrado
+            nombre_base = os.path.splitext(uploaded_file.name)[0]
+            nombre_excel = f"{nombre_base}_filtrado.xlsx"
+
+            buffer = io.BytesIO()
+            df_filtrado.to_excel(buffer, index=False, engine="openpyxl")
+            buffer.seek(0)
+
+            st.download_button(
+                label="Descargar Excel filtrado",
+                data=buffer,
+                file_name=nombre_excel,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
+        # Exportar Excel completo
         nombre_base = os.path.splitext(uploaded_file.name)[0]
         nombre_excel = f"{nombre_base}_procesado.xlsx"
 
@@ -180,7 +195,7 @@ def main():
         buffer.seek(0)
 
         st.download_button(
-            label="Descargar Excel",
+            label="Descargar Excel completo",
             data=buffer,
             file_name=nombre_excel,
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -188,4 +203,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
