@@ -3,6 +3,19 @@ import camelot
 import pandas as pd
 import re, os, tempfile, io
 
+# 🔹 Personalización del fondo con CSS
+page_bg_img = f"""
+<style>
+[data-testid="stAppViewContainer"] {{
+    background-image: url("https://github.com/Ariel-Alte/extraer-datos-de-PISE/blob/main/CKD.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}}
+</style>
+"""
+st.markdown(page_bg_img, unsafe_allow_html=True)
+
 def procesar_pdf(uploaded_file):
     tmpdir = tempfile.mkdtemp()
     path = os.path.join(tmpdir, uploaded_file.name)
