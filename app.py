@@ -80,8 +80,6 @@ def main():
     st.title("Extraer datos de informes estáticos PISE")
     
     st.markdown("### 📂 Subir solo informe del tipo preliminar")
-    st.markdown("Arrastra y suelta tu archivo aquí o haz clic en **Examinar archivos**")
-    st.markdown("Límite: un solo archivo a la vez • Formato: del tipo preliminar")
     
     uploaded_file = st.file_uploader("Subir el informe de una unidad en PDF Preliminar", type="pdf")
     if uploaded_file is not None:
