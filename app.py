@@ -157,17 +157,13 @@ def main():
         ]
         df_final = df_final.reindex(columns=orden_columnas)
 
-        # Vista previa completa
-        st.write("Vista previa de todos los datos extraídos:")
-        st.dataframe(df_final)
-
-               # 🔹 Bloque de previsualización
+                  # 🔹 Bloque de previsualización
         st.write("Vista previa de los datos extraídos:")
         st.dataframe(df_final)
         st.write(f"Total de filas extraídas: {len(df_final)}")
 
         # 🔍 Buscador dinámico por ítem técnico
-        busqueda = st.text_input("Buscar ítem técnico (ej: 2.13, 4.12, etc.)")
+        busqueda = st.text_input("Buscar ítem técnico (ej: 2.13, 4.12, etc.), se debe colocar el **item** + **,** + **espacio** y el siguiente items se repite proceso")
 
         if busqueda:
             df_filtrado = df_final[df_final["Ítem técnico"].astype(str).str.contains(busqueda, case=False, na=False)]
