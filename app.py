@@ -161,7 +161,12 @@ def main():
         st.write("Vista previa de todos los datos extraídos:")
         st.dataframe(df_final)
 
-        # 🔍 Buscador dinámico
+               # 🔹 Bloque de previsualización
+        st.write("Vista previa de los datos extraídos:")
+        st.dataframe(df_final)
+        st.write(f"Total de filas extraídas: {len(df_final)}")
+
+        # 🔍 Buscador dinámico por ítem técnico
         busqueda = st.text_input("Buscar ítem técnico (ej: 2.13, 4.12, etc.)")
 
         if busqueda:
