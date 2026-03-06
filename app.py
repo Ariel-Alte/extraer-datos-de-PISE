@@ -90,9 +90,37 @@ def procesar_pdf(uploaded_file):
     return df_final
 
 def main():
-    st.title("Extraer datos de informes estáticos PISE")
+    #st.title("Extraer datos de informes estáticos PISE")
     
-    st.markdown("### 📂 Subir solo informe del tipo preliminar")
+    #st.markdown("### 📂 Subir solo informe del tipo preliminar")
+
+    st.markdown(
+    """
+    <h1 style='color: white; 
+               text-align: center; 
+               background-color: #333333; 
+               padding: 12px; 
+               border-radius: 8px; 
+               border: 2px solid black;'>
+        Extraer datos de informes estáticos PISE
+    </h1>
+    """,
+    unsafe_allow_html=True
+)
+
+# Subtítulo con color y borde
+st.markdown(
+    """
+    <h3 style='color: yellow; 
+               background-color: #333333; 
+               padding: 8px; 
+               border-left: 5px solid orange;'>
+        📂 Subir solo informe del tipo preliminar
+    </h3>
+    """,
+    unsafe_allow_html=True
+)
+
     
     uploaded_file = st.file_uploader("Subir el informe de una unidad en PDF Preliminar", type="pdf")
     if uploaded_file is not None:
