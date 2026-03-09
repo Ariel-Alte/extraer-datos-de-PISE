@@ -127,17 +127,21 @@ def main():
         unsafe_allow_html=True
     )
 
-    uploaded_file = st.file_uploader("Subir el informe de una unidad en PDF Preliminar", type="pdf")
-    if uploaded_file is not None:
-        df_final = procesar_pdf(uploaded_file)
+    # 🔹 Uploader múltiple
+    uploaded_files = st.file_uploader("Subir informes preliminares en PDF", type="pdf", accept_multiple_files=True)
 
-        # Extraer encabezado
-        encabezado = extraer_encabezado(uploaded_file)
-        for clave, valor in encabezado.items():
-            df_final[clave] = valor
+    if uploaded_files:
+        dfs = []
+        for uploaded_file in uploaded_files:
+            df_temp = procesar_pdf(uploaded_file)
+            encabezado = extraer_encabezado(uploaded_file)
+            for clave, valor in encabezado.items():
+                df_temp[clave] = valor
+            df_temp["Nombre del archivo"] = uploaded_file.name
+            dfs.append(df_temp)
 
-        # Agregar nombre del archivo
-        df_final["Nombre del archivo"] = uploaded_file.name
+        # Concatenar todos los resultados
+        df_final = pd.concat(dfs, ignore_index=True)
 
         # Reordenar columnas
         orden_columnas = [
@@ -157,7 +161,7 @@ def main():
         ]
         df_final = df_final.reindex(columns=orden_columnas)
 
-                  # 🔹 Bloque de previsualización
+        # 🔹 Bloque de previsualización
         st.write("Vista previa de los datos extraídos:")
         st.dataframe(df_final)
         st.write(f"Total de filas extraídas: {len(df_final)}")
@@ -174,8 +178,8 @@ def main():
             st.write(f"Total de filas encontradas: {len(df_filtrado)}")
 
             # Exportar Excel filtrado
-            nombre_base = os.path.splitext(uploaded_file.name)[0]
-            nombre_excel = f"{nombre_base}_filtrado.xlsx"
+            nombre_base = "informes_filtrados"
+            nombre_excel = f"{nombre_base}.xlsx"
 
             buffer = io.BytesIO()
             df_filtrado.to_excel(buffer, index=False, engine="openpyxl")
@@ -188,5 +192,21 @@ def main():
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
+        # Exportar Excel completo
+        nombre_base = "informes_completos"
+        nombre_excel = f"{nombre_base}.xlsx"
+
+        buffer = io.BytesIO()
+        df_final.to_excel(buffer, index=False, engine="openpyxl")
+        buffer.seek(0)
+
+        st.download_button(
+            label="Descargar Excel completo",
+            data=buffer,
+            file_name=nombre_excel,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
 if __name__ == "__main__":
     main()
+
