@@ -162,11 +162,13 @@ def main():
         st.dataframe(df_final)
         st.write(f"Total de filas extraídas: {len(df_final)}")
 
-        # 🔍 Buscador dinámico por ítem técnico
-        busqueda = st.text_input("Buscar ítem técnico (ej: 2.13, 4.12, etc.), se debe colocar el **item** + **,** + **espacio** y el siguiente items se repite proceso")
+        # 🔍 Buscador múltiple por ítems separados por coma
+        busqueda = st.text_input("Buscar ítems técnicos (separados por coma, ej: 3.12.1, 3.12.2)")
 
         if busqueda:
-            df_filtrado = df_final[df_final["Ítem técnico"].astype(str).str.contains(busqueda, case=False, na=False)]
+            items = [x.strip() for x in busqueda.split(",") if x.strip()]
+            df_filtrado = df_final[df_final["Ítem técnico"].astype(str).isin(items)]
+
             st.write("Resultados filtrados:")
             st.dataframe(df_filtrado)
             st.write(f"Total de filas encontradas: {len(df_filtrado)}")
